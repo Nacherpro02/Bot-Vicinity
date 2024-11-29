@@ -20,10 +20,13 @@ intents.guilds = True
 intents.voice_states = True
 channel_id = 1311745347848110091 
 url = "https://www.vicinityclo.de/products/akimbo-lows-pristina-moss"
+#url = "https://github.com/Nacherpro02"
 GUILD_ID = discord.Object(id=os.getenv('GUILD_ID'))
+isplaying = True
 
 client = commands.Bot(command_prefix='!', intents=intents)
 
+ruta_audio = 'alarma.mp3'
 @client.command()
 async def ping(ctx):
     await ctx.send(f'Pons 🐎! {round(client.latency * 1000)}ms')
@@ -33,26 +36,25 @@ def get_random_time():
     """Genera un número aleatorio entre 30 y 60 segundos."""
     return random.randint(30,60)
 
-# Función de verificación HTTP
+
 
 async def check_http_and_notify():
-    print("Verificando la URL...")  # Verificamos si esta línea se imprime
+    print("Verificando la URL...")
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 status = response.status
-                print(f"Estado HTTP: {status}")  # Depuración adicional para ver el estado
+                print(f"Estado HTTP: {status}")  
         return status
     except Exception as e:
         print(f"Error al verificar la URL: {e}")
 
-# Bucle que ejecuta la función de manera continua
+
 @client.command()
 async def req(ctx):
     global exe
-    exe == True
     await ctx.send("Comando ejecutando...")
-    print("Iniciando el bucle principal...")  # Depuración para ver si entra en el bucle
+    print("Iniciando el bucle principal...")  
     while exe == True:
         try:
             status = await check_http_and_notify()
@@ -60,16 +62,28 @@ async def req(ctx):
                 print("Código 200 encontrado, enviando mensaje a Discord.")
                 await ctx.send("¡La URL ha respondido con un código 200!")
                 await ctx.send(f"Aqui lo podeis comprar hijos de puta: {url}")
+                await ctx.send("Vamos a reproducir el audio de la alarma...")
+                await ctx.send("@everyone Despertad Hijos de Puta")
+                canal = ctx.guild.voice_channels[0]
+                while isplaying == True:  
+                    voz = await canal.connect()
+                    voz.play(discord.FFmpegPCMAudio(ruta_audio), after=lambda e: print('Audio terminado'))
+                
+                    while voz.is_playing():
+                        await asyncio.sleep(1)
+                
+              
+                    await voz.disconnect()
             else:
                 print(f"Respuesta HTTP: {status}. No se envió mensaje.")
-                await ctx.send(f"¡La URL no está disponible, código {status}!")              # Llamar a la función que hace la solicitud HTTP
+                await ctx.send(f"¡La URL no está disponible, código {status}!")      
         except Exception as e:
             print(f"Error al verificar la URL: {e}")
         
-        # Espera aleatoria entre 30 y 60 segundos antes de hacer otra solicitud
+  
         await asyncio.sleep(get_random_time())
 
-# Ejecutar el bucle asincrónico
+
 
 @client.command()
 async def hola(ctx):
@@ -77,8 +91,9 @@ async def hola(ctx):
     await ctx.send(f"¡Hola {name}!, Estas chill de cojones: 😎")
     await ctx.send(f"Pareces a este pibe:")
     url_img = "https://images.ecestaticos.com/FT4j1yrH6ubzFmRZSFIt-7IiXy4=/0x0:768x432/1200x900/filters:fill(white):format(jpg)/f.elconfidencial.com%2Foriginal%2Fcc1%2F688%2F7d3%2Fcc16887d325ecbce718eaa217416f1bf.jpg"
-    asyncio.sleep(1)
+    await asyncio.sleep(1)
     await ctx.send(url_img)
+
 
 @client.command()
 async def akimbo(ctx):
@@ -95,21 +110,23 @@ async def canijo(ctx):
 
 @client.command()
 async def comandos(ctx):
-    await ctx.send("Comandos disponibles: !ping, !req, !akimbo, !javi, !canijo, !stop")
+    await ctx.send("Comandos disponibles: !ping, !req, !akimbo, !javi, !canijo, !stop, !comandos, !hola, !repositorio, !delete_chat")
 
 @client.command()
-@commands.has_permissions(manage_messages=True)  # Asegura que el usuario tenga permisos para gestionar mensajes
+async def repositorio(ctx):
+    await ctx.send("https://github.com/Nacherpro02/Bot-Vicinity")
+
+@client.command()
+@commands.has_permissions(manage_messages=True) 
 async def delete_chat(ctx):
     await ctx.send("Borrando todos los mensajes... Esto puede tardar un momento.")
-    
-    # Bucle para eliminar mensajes en lotes
+  
     deleted = 0
     while True:
-        # Intenta purgar un lote de mensajes
+   
         try:
-            deleted_messages = await ctx.channel.purge(limit=100)  # Limitar a 100 mensajes por vez
+            deleted_messages = await ctx.channel.purge(limit=100)
             deleted += len(deleted_messages)
-            # Si no se borran más mensajes, salimos del bucle
             if len(deleted_messages) < 100:
                 break
         except discord.Forbidden:
@@ -119,7 +136,7 @@ async def delete_chat(ctx):
             await ctx.send("Ocurrió un error al intentar borrar los mensajes.")
             return
 
-    await ctx.send(f'Se han borrado un total de {deleted} mensajes.', delete_after=5)  # Mensaje que se autodestruirá después de 5 segundos
+    await ctx.send(f'Se han borrado un total de {deleted} mensajes.', delete_after=5) 
 
 
 @client.command()
